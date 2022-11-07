@@ -1,0 +1,85 @@
+# Standard Configuration Options
+
+## User Overridable variables
+
+CC=@CC@
+CFLAGS=@CFLAGS@
+CPPFLAGS=@CPPFLAGS@
+LDFLAGS=@LDFLAGS@
+
+CXX=@CXX@
+CXXFLAGS=@CXXFLAGS@
+
+SED=@SED@
+INSTALL=@INSTALL@
+
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+libdir=@libdir@
+libexecdir=@libexecdir@
+includedir=@includedir@
+datarootdir=@datarootdir@
+datadir=@datadir@
+docdir=@docdir@
+mandir=@mandir@
+infodir=@infodir@
+sysconfdir=@sysconfdir@
+sharedstatedir=@sharedstatedir@
+localstatedir=@localstatedir@
+
+## Do not override
+
+srcdir=@srcdir@
+builddir=@builddir@
+
+EXTRA_CFLAGS=-std=c11
+EXTRA_CXXFLAGS=-std=c++20
+EXTRA_LDFLAGS=
+EXTRA_CPPFLAGS=
+
+LIBS=
+INCLUDEDIRS=include
+
+OUTPUT=trustc
+
+OBJECTS = main.o
+# Rules
+
+.PHONY: all install clean install-strip distclean
+
+# Use lc-standard stamp protocol
+all:
+	+$(MAKE) stamp
+
+stamp: $(OUTPUT)
+	touch stamp
+
+$(OUTPUT): $(OBJECTS)
+	$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(LDFLAGS) $(EXTRA_LDFLAGS) $(LIBS:%=-l%) -o$@ $^
+
+include $(OBJECTS:.o=.o.d)
+
+@builddir@/%.o.d: @srcdir@/src/%.cxx 
+	$(CXX) -MM $(CPPFLAGS) $(EXTRA_CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(INCLUDEDIRS:%=-I$(srcdir)/%) -o$@ $<
+
+@builddir@/%.o: @srcdir@/src/%.cxx | @builddir@/%.o.d
+	$(CXX) -c $(CPPFLAGS) $(EXTRA_CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(INCLUDEDIRS:%=-I$(srcdir)/%) -o$@ $<
+
+@builddir@/%.o.d: @srcdir@/src/%.c
+	$(CC) -MM $(CPPFLAGS) $(EXTRA_CPPFLAGS) $(CXXFLAGS) $(EXTRA_CXXFLAGS) $(INCLUDEDIRS:%=-I$(srcdir)/%) -o$@ $<
+
+@builddir@/%.o: @srcdir@/src/%.c | @builddir@/%.o.d
+	$(CC) -c $(CPPFLAGS) $(EXTRA_CPPFLAGS) $(CFLAGS) $(EXTRA_CFLAGS) $(INCLUDEDIRS:%=-I$(srcdir)/%) -o$@ $<
+
+clean: 
+	rm -f $(OBJECTS) $(OBJECTS:.o=.o.d) $(OUTPUT) stamp
+
+distclean: clean
+	rm -f config.status config.log Makefile
+
+install:
+	$(INSTALL) -m755 $(bindir) $(OUTPUT)
+
+install-strip:
+	$(INSTALL) -sm755 $(bindir) $(OUTPUT)
