@@ -39,11 +39,11 @@ EXTRA_LDFLAGS=
 EXTRA_CPPFLAGS=
 
 LIBS=
-INCLUDEDIRS=include
+INCLUDEDIRS=include cpp-unicodelib
 
 OUTPUT=trustc
 
-OBJECTS = main.o
+OBJECTS = main.o lex.o unicode.o
 # Rules
 
 .PHONY: all install clean install-strip distclean
